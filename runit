@@ -1,0 +1,23 @@
+#!/bin/bash
+
+outputFile="~/ask-output.txt" # Store the file path in a variable without quotes
+
+# Use tilde expansion outside quotes to get the home directory path
+outputFile="${outputFile/#\~/$HOME}"
+
+# Check if outputFile exists and is a regular file
+if [ ! -f "$outputFile" ]; then
+	echo "$outputFile does not exist or is not a regular file"
+	exit 1
+fi
+
+# Read the last line from outputFile
+last_command=$(tail -n 1 "$outputFile")
+
+# If there are command-line arguments, append them to last_command
+if [ $# -gt 0 ]; then
+	last_command="$last_command $*"
+fi
+
+# Execute the command
+eval "$last_command"

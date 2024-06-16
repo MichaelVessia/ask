@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -45,7 +47,14 @@ func main() {
 	// Specify the full path to the output file
 	outputPath := homeDir + "/" + outputFile
 
-	prompt := os.Args[1]
+	// Define the long flag
+	longFlag := flag.Bool("long", false, "Return full answers instead of short ones")
+	flag.Parse()
+
+	// Get the prompt from the remaining arguments
+	prompt := strings.Join(flag.Args(), " ")
+
+	//prompt := os.Args[1]
 
 	client := resty.New()
 
@@ -54,11 +63,17 @@ func main() {
 		log.Fatal("GROQ_API_KEY environment variable is required")
 	}
 
+	// Create the prompt content based on the --long flag
+	content := prompt
+	if !*longFlag {
+		content = "Answer the following prompt in the smallest amount of possible characters while still being the valid and correct answer. Remove all punctuation, you are often returning unix commands that need to be executed. \n\n" + prompt
+	}
+
 	requestBody := RequestBody{
 		Messages: []Message{
 			{
 				Role:    "user",
-				Content: "Answer the following prompt in the smallest amount of possible characters while still being the valid and correct answer. Remove all punctuation, you are often returning unix commands that need to be executed. \n\n" + prompt,
+				Content: content,
 			},
 		},
 		Model: "llama3-8b-8192",
